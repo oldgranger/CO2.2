@@ -14,7 +14,8 @@ class Config:
     NUM_WORKERS = 0
 
     # Model configuration
-    NUM_CLASSES = 91  # COCO classes
+    NUM_CLASSES = 3
+    CLASS_NAMES = ["Paper", "Rock", "Scissors"]
     HIDDEN_DIM = 256
     NHEADS = 8
     NUM_ENCODER_LAYERS = 6

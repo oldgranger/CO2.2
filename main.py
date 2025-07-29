@@ -14,6 +14,19 @@ from torch.optim import AdamW
 def main():
     # Load data
     train_dataset, val_dataset, test_dataset = load_datasets(config.DATA_PATH)
+
+    sample_img, sample_target = train_dataset[0]
+    print("\n=== Data Verification ===")
+    print("Image shape:", sample_img.shape)
+    print("Boxes:", sample_target['boxes'])
+    print("Labels:", sample_target['labels'])
+    #verify data loading
+    for i in [0, 1, 2]:
+        img, target = train_dataset[i]
+        assert len(target['labels']) > 0, f"Sample {i} has no labels!"
+    print("Data verification passed!\n")
+
+
     train_loader = DataLoader(
         train_dataset, batch_size=config.BATCH_SIZE, shuffle=True,
         collate_fn=collate_fn, num_workers=config.NUM_WORKERS, pin_memory=True
@@ -60,7 +73,7 @@ def main():
 
     print("Training completed!")
     torch.save(model.state_dict(), "rfdetr_final.pth")
-    print("✅ Model weights saved to rfdetr_final.pth")
+    print("PASSED: Model weights saved to rfdetr_final.pth")
 
 if __name__ == '__main__':
     torch.multiprocessing.set_start_method('spawn', force=True)

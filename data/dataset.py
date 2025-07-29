@@ -15,7 +15,7 @@ class CocoDetectionWithTransform(CocoDetection):
             transforms.ToDtype(torch.float32, scale=True)
         ])
 
-    def __getitem__(self, idx: int) -> tuple:
+    def __getitem__(self, idx):
         img, target = super().__getitem__(idx)
         img = self.base_transform(img)
 
@@ -23,10 +23,12 @@ class CocoDetectionWithTransform(CocoDetection):
         labels = []
         for obj in target:
             if 'bbox' in obj and 'category_id' in obj:
-                x, y, w, h = obj['bbox']
-                if w > 1 and h > 1:
-                    boxes.append([x, y, x + w, y + h])
-                    labels.append(obj['category_id'])
+                category_id = obj['category_id']
+                if category_id in [1, 2, 3]:
+                    x, y, w, h = obj['bbox']
+                    if w > 1 and h > 1:
+                        boxes.append([x, y, x + w, y + h])
+                        labels.append(category_id - 1)
 
         if len(boxes) == 0:
             boxes = torch.zeros((0, 4), dtype=torch.float32)
@@ -36,10 +38,8 @@ class CocoDetectionWithTransform(CocoDetection):
             labels = torch.tensor(labels, dtype=torch.int64)
 
         target = {'boxes': boxes, 'labels': labels}
-
         if self.transform:
             img, target = self.transform(img, target)
-
         return img, target
 
 
