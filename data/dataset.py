@@ -17,7 +17,6 @@ class CocoDetectionWithTransform(CocoDetection):
 
     def __getitem__(self, idx):
         img, target = super().__getitem__(idx)
-        img = self.base_transform(img)
 
         boxes = []
         labels = []
@@ -37,7 +36,12 @@ class CocoDetectionWithTransform(CocoDetection):
             boxes = torch.tensor(boxes, dtype=torch.float32)
             labels = torch.tensor(labels, dtype=torch.int64)
 
-        target = {'boxes': boxes, 'labels': labels}
+        target = {
+            'boxes': boxes,
+            'labels': labels,
+            'image_id': torch.tensor([idx])
+        }
+
         if self.transform:
             img, target = self.transform(img, target)
         return img, target

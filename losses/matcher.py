@@ -37,5 +37,5 @@ class HungarianMatcher(nn.Module):
         C = torch.nan_to_num(C, nan=1e8, posinf=1e8, neginf=1e8)
 
         sizes = [len(v['boxes']) for v in targets]
-        indices = [linear_sum_assignment(c[i]) for i, c in enumerate(C.split(sizes, -1))]
+        indices = [linear_sum_assignment(c[i].cpu()) for i, c in enumerate(C.split(sizes, -1))]
         return [(torch.as_tensor(i, dtype=torch.int64), torch.as_tensor(j, dtype=torch.int64)) for i, j in indices]

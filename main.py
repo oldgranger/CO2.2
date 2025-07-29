@@ -1,4 +1,3 @@
-import os
 import torch
 import torch.multiprocessing
 from torch.utils.data import DataLoader
@@ -12,6 +11,9 @@ from train import train_model
 from torch.optim import AdamW
 
 def main():
+    print(f"Using device: {config.DEVICE}")
+    print("CUDA available:", torch.cuda.is_available())
+    print(f"Device name: {torch.cuda.get_device_name(0)}")
     # Load data
     train_dataset, val_dataset, test_dataset = load_datasets(config.DATA_PATH)
 
@@ -20,12 +22,11 @@ def main():
     print("Image shape:", sample_img.shape)
     print("Boxes:", sample_target['boxes'])
     print("Labels:", sample_target['labels'])
-    #verify data loading
+
     for i in [0, 1, 2]:
         img, target = train_dataset[i]
         assert len(target['labels']) > 0, f"Sample {i} has no labels!"
     print("Data verification passed!\n")
-
 
     train_loader = DataLoader(
         train_dataset, batch_size=config.BATCH_SIZE, shuffle=True,
@@ -36,14 +37,13 @@ def main():
         collate_fn=collate_fn, num_workers=config.NUM_WORKERS, pin_memory=True
     )
 
-    # Initialize model
     model = RFDETR(
         num_classes=config.NUM_CLASSES,
         hidden_dim=config.HIDDEN_DIM,
         nheads=config.NHEADS,
         num_encoder_layers=config.NUM_ENCODER_LAYERS,
         num_decoder_layers=config.NUM_DECODER_LAYERS
-    )
+    ).to(config.DEVICE)
 
     # Initialize matcher and criterion
     matcher = HungarianMatcher(**config.MATCHER_COSTS)
