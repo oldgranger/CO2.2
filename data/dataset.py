@@ -14,6 +14,15 @@ class CocoDetectionWithTransform(CocoDetection):
             transforms.ToImage(),
             transforms.ToDtype(torch.float32, scale=True)
         ])
+        self._validate_categories()
+
+    def _validate_categories(self):
+        valid_ids = {1: "Paper", 2: "Rock", 3: "Scissors"}
+        parent_ids = {0}
+        for cat in self.coco.cats.values():
+            if cat['id'] not in valid_ids and cat['id'] not in parent_ids:
+                raise ValueError(
+                    f"Unexpected category ID {cat['id']}. Expected: {valid_ids.keys()} or parent IDs {parent_ids}")
 
     def __getitem__(self, idx):
         img, target = super().__getitem__(idx)
@@ -23,18 +32,15 @@ class CocoDetectionWithTransform(CocoDetection):
         for obj in target:
             if 'bbox' in obj and 'category_id' in obj:
                 category_id = obj['category_id']
-                if category_id in [1, 2, 3]:
+                if category_id in {1, 2, 3}:
                     x, y, w, h = obj['bbox']
                     if w > 1 and h > 1:
                         boxes.append([x, y, x + w, y + h])
                         labels.append(category_id - 1)
 
-        if len(boxes) == 0:
-            boxes = torch.zeros((0, 4), dtype=torch.float32)
-            labels = torch.zeros((0,), dtype=torch.int64)
-        else:
-            boxes = torch.tensor(boxes, dtype=torch.float32)
-            labels = torch.tensor(labels, dtype=torch.int64)
+        # Convert to tensors
+        boxes = torch.tensor(boxes, dtype=torch.float32) if boxes else torch.zeros((0, 4), dtype=torch.float32)
+        labels = torch.tensor(labels, dtype=torch.int64) if labels else torch.zeros((0,), dtype=torch.int64)
 
         target = {
             'boxes': boxes,
